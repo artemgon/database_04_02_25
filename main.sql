@@ -1,91 +1,74 @@
-CREATE DATABASE HOSPITAL;
-GO
+create database Academy;
+go
 
-USE HOSPITAL;
-GO
+use Academy;
+go
 
-CREATE TABLE Departments (
-    DepartmentID INT IDENTITY(1,1) PRIMARY KEY NOT NULL,
-    DepartmentBuilding INT NOT NULL CHECK (DepartmentBuilding >= 1 AND DepartmentBuilding <= 5),
-    DepartmentFinancing MONEY NOT NULL CHECK (DepartmentFinancing > 0),
-    DepartmentName NVARCHAR(100) NOT NULL CHECK (LEN(TRIM(DepartmentName)) > 0) UNIQUE
+create table Groups
+(
+    GroupId int primary key identity(1,1) not null,
+    GroupName nvarchar(10) not null unique check (LEN(TRIM(GroupName)) > 0),
+    GroupRating int not null check (GroupRating >= 0 and GroupRating <= 5),
+    GroupYear int not null check (GroupYear >= 1 and GroupYear <= 5)
 )
-GO
+go
 
-CREATE TABLE Diseases(
-    DiseaseID INT IDENTITY(1,1) PRIMARY KEY NOT NULL,
-    DiseaseName NVARCHAR(100) NOT NULL CHECK (LEN(TRIM(DiseaseName)) > 0) UNIQUE,
-    DiseaseSeverity INT NOT NULL CHECK (DiseaseSeverity >= 1) DEFAULT 1
+create table Departments
+(
+    DepartmentId int primary key identity(1,1) not null,
+    DepartmentFinancing money not null check (DepartmentFinancing >= 0) default 0,
+    DepartmentName nvarchar(100) not null unique check (LEN(TRIM(DepartmentName)) > 0)
 )
-GO
+go
 
-CREATE TABLE Doctors(
-    DoctorID INT IDENTITY(1,1) PRIMARY KEY NOT NULL,
-    DoctorName NVARCHAR(MAX) NOT NULL CHECK (LEN(TRIM(DoctorName)) > 0),
-    DoctorPhone CHAR(10) NOT NULL CHECK (DoctorPhone LIKE '[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]'),
-    DoctorSalary MONEY NOT NULL CHECK (DoctorSalary > 0),
-    DoctorSurname NVARCHAR(MAX) NOT NULL CHECK (LEN(TRIM(DoctorSurname)) > 0)
+create table Faculties
+(
+    FacultyId int primary key identity(1,1) not null,
+    FacultyName nvarchar(100) not null unique check (LEN(TRIM(FacultyName)) > 0)
 )
-GO
+go
 
-CREATE TABLE Examinations(
-    ExaminationID INT IDENTITY(1,1) PRIMARY KEY NOT NULL,
-    ExaminationDayOfWeek INT NOT NULL CHECK (ExaminationDayOfWeek >= 1 AND ExaminationDayOfWeek <= 7),
-    ExaminationStartTime TIME NOT NULL CHECK (ExaminationStartTime >= '08:00:00' AND ExaminationStartTime <= '18:00:00'),
-    ExaminationEndTime TIME NOT NULL CHECK (ExaminationEndTime > ExaminationStartTime),
-    ExaminationName NVARCHAR(100) NOT NULL CHECK (LEN(TRIM(ExaminationName)) > 0) UNIQUE
+create table Teachers
+(
+    TeacherId int primary key identity (1,1) not null,
+    TeacherEmploymentDate date not null check (TeacherEmploymentDate <= '01.01.1990'),
+    TeacherName nvarchar(max) not null check (LEN(TRIM(TeacherName)) > 0),
+    TeacherPremium money not null check (TeacherPremium >= 0) default 0,
+    TeacherSalary money not null check (TeacherSalary > 0),
+    TeacherSurname nvarchar(max) not null check (LEN(TRIM(TeacherSurname)) > 0)
 )
-GO
+go
 
-INSERT INTO Departments (DepartmentBuilding, DepartmentFinancing, DepartmentName)
-VALUES
-(1, 100000, 'Cardiology'),
-(2, 200000, 'Neurology'),
-(3, 300000, 'Oncology'),
-(4, 400000, 'Gynecology'),
-(5, 500000, 'Pediatrics');
+insert into Groups (GroupName, GroupRating, GroupYear)
+values
+('A1', 5, 1),
+('A2', 4, 2),
+('A3', 3, 3),
+('A4', 2, 4),
+('A5', 1, 5)
 
-INSERT INTO Diseases (DiseaseName, DiseaseSeverity)
-VALUES
-('Heart Disease', 1),
-('Brain Tumor', 2),
-('Breast Cancer', 3),
-('Pregnancy', 4),
-('Chickenpox', 5);
+insert into Departments (DepartmentFinancing, DepartmentName)
+values
+(100000, 'Department1'),
+(200000, 'Department2'),
+(300000, 'Department3'),
+(400000, 'Department4'),
+(500000, 'Department5')
 
-INSERT INTO Doctors (DoctorName, DoctorPhone, DoctorSalary, DoctorSurname)
-VALUES
-('John', '1234567890', 10000, 'Doe'),
-('Jane', '0987654321', 20000, 'Doe'),
-('Jack', '1234567890', 30000, 'Smith'),
-('Jill', '0987654321', 40000, 'Smith'),
-('Jim', '1234567890', 50000, 'Johnson');
+insert into Faculties (FacultyName)
+values
+('Faculty1'),
+('Faculty2'),
+('Faculty3'),
+('Faculty4'),
+('Faculty5')
 
-INSERT INTO Examinations (ExaminationDayOfWeek, ExaminationStartTime, ExaminationEndTime, ExaminationName)
-VALUES
-(1, '08:00:00', '12:00:00', 'Cardiology Examination'),
-(2, '08:00:00', '12:00:00', 'Neurology Examination'),
-(3, '08:00:00', '12:00:00', 'Oncology Examination'),
-(4, '08:00:00', '12:00:00', 'Gynecology Examination'),
-(5, '08:00:00', '12:00:00', 'Pediatrics Examination');
+insert into Teachers (TeacherEmploymentDate, TeacherName, TeacherPremium, TeacherSalary, TeacherSurname)
+values
+('01.01.1980', 'Teacher1', 1000, 10000, 'Surname1'),
+('01.01.1981', 'Teacher2', 2000, 20000, 'Surname2'),
+('01.01.1982', 'Teacher3', 3000, 30000, 'Surname3'),
+('01.01.1983', 'Teacher4', 4000, 40000, 'Surname4'),
+('01.01.1984', 'Teacher5', 5000, 50000, 'Surname5')
 
-
-CREATE TRIGGER ValidateExaminationTime
-ON Examinations
-AFTER INSERT, UPDATE
-AS
-BEGIN
-    IF EXISTS (
-        SELECT 1
-        FROM inserted
-        WHERE ExaminationEndTime <= ExaminationStartTime
-    )
-    BEGIN
-        RAISERROR('ExaminationEndTime must be greater than ExaminationStartTime.', 16, 1);
-        ROLLBACK TRANSACTION;
-    END
-END
-GO
-
-DROP DATABASE HOSPITAL;
-
+drop database Academy;
